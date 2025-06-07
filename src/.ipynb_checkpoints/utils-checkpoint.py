@@ -115,7 +115,7 @@ def plot_multiple_axes(df, cols, plot_type='hist', target=None, n_cols=3, height
     for i, col in enumerate(cols_to_plot):
         ax = axes[i]
         if plot_type == 'hist':
-            sns.histplot(data=df, x=col, bins=bins, ax=ax, kde=True, hue=col, palette='pastel', legend=False)
+            sns.histplot(data=df, x=col, bins=bins, ax=ax) #, hue=col, palette='pastel', legend=False)
         elif plot_type == 'count':
             sns.countplot(data=df, x=col, ax=ax, hue=col, palette='pastel', legend=False)
         elif plot_type == 'bar' and target:
