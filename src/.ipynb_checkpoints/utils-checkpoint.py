@@ -80,7 +80,7 @@ def col_value_counts(df, column):
     print(df[column].value_counts())
 
 # 여러개의 함수 Plot 
-def plot_multiple_axes(df, cols, plot_type='hist', target=None, n_cols=3, height=4, bins=30, xrot=0, exclude_cols=None, hue=None):
+def plot_multiple_axes(df, cols, plot_type='hist', target=None, n_cols=3, height=4, bins=30, xrot=0, exclude_cols=None, hue=None, legend=True):
     """
     여러 피처의 시각화를 한 번에 출력하는 범용 함수
     특정 피처를 제외하고 시각화할 수 있는 기능을 추가.
@@ -121,16 +121,26 @@ def plot_multiple_axes(df, cols, plot_type='hist', target=None, n_cols=3, height
         if plot_type == 'hist':
             sns.histplot(data=df, x=col, bins=bins, ax=ax) #, hue=col, palette='pastel', legend=False)
         elif plot_type == 'count':
-            sns.countplot(data=df, x=col, ax=ax)
+            if hue:
+                sns.countplot(data=df, x=col, ax=ax, hue=hue, palette='pastel', legend=True)
+            else:
+                sns.countplot(data=df, x=col, ax=ax)
+        
         elif plot_type == 'bar' and target:
-            sns.barplot(data=df, x=col, y=target, ax=ax)
+            if hue:
+                sns.barplot(data=df, x=target, y=col, ax=ax, hue=hue, palette='pastel', legend=True)
+            else:
+                sns.barplot(data=df, x=target, y=col, ax=ax)
         elif plot_type == 'box' and target:
             if hue:
-                sns.boxplot(data=df, x=target, y=col, ax=ax, hue=hue, palette='pastel')
+                sns.boxplot(data=df, x=target, y=col, ax=ax, hue=hue, palette='pastel', legend=True)
             else:
                 sns.boxplot(data=df, x=target, y=col, ax=ax)
         elif plot_type == 'violin' and target:
-            sns.violinplot(data=df, x=target, y=col, ax=ax)
+            if hue:
+                sns.violinplot(data=df, x=target, y=col, ax=ax, hue=hue, palette='pastel', legend=True)
+            else:
+                sns.violinplot(data=df, x=target, y=col, ax=ax)
         else:
             ax.text(0.5, 0.5, 'Invalid plot_type or missing target', ha='center')
 
