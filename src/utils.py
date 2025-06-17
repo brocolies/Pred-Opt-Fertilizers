@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -41,10 +42,7 @@ def write_percent(ax, total_size):
             ha='center')
 
 # Feature Table 함수
-import pandas as pd
-import numpy as np
-
-def resumetable(df, missing_value=-1, ignore_cols=None, verbose=True):
+def resumetable(df, target_col, missing_value=-1, ignore_cols=None, verbose=True):
     ignore_cols = ignore_cols or []
     if verbose:
         print(f'Data shape: {df.shape}')
@@ -57,15 +55,21 @@ def resumetable(df, missing_value=-1, ignore_cols=None, verbose=True):
     for col in df.columns:
         if col in ignore_cols:
             continue
-        if 'bin' in col:
+        if col == target_col:
+            summary.loc[col, 'Feature Type'] = 'Target'
+            continue 
+        if df[col].nunique() == len(df):
+            summary.loc[col, 'Feature Type'] = 'Id'
+            continue
+        if df[col].nunique() == 2:
             summary.loc[col, 'Feature Type'] = 'Binary'
-        elif 'cat' in col:
-            summary.loc[col, 'Feature Type'] = 'Nominal'
-        elif np.issubdtype(df[col].dtype, np.floating):
-            summary.loc[col, 'Feature Type'] = 'Continuous'
-        elif np.issubdtype(df[col].dtype, np.integer):
-            summary.loc[col, 'Feature Type'] = 'Ordinal'
-
+            continue
+        if np.issubdtype(df[col].dtype, 'object'):
+            summary.loc[col, 'Feature Type'] = 'Categorical'
+            continue
+        if np.issubdtype(df[col].dtype, np.number):
+            summary.loc[col, 'Feature Type'] = 'Needs_Review(Int)'
+        
     summary = summary.sort_values(by='Feature Type')
     return summary
 
