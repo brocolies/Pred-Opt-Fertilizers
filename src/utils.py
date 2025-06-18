@@ -122,23 +122,27 @@ def plot_multiple_axes(df, cols, plot_type='hist', target=None, n_cols=3, height
             sns.histplot(data=df, x=col, bins=bins, ax=ax) #, hue=col, palette='pastel', legend=False)
         elif plot_type == 'count':
             if hue:
-                sns.countplot(data=df, x=col, ax=ax, hue=hue, palette='pastel', legend=True)
+                sns.countplot(data=df, x=col, ax=ax, hue=hue, palette='pastel', legend=legend)
+                ax.get_legend().remove()
             else:
                 sns.countplot(data=df, x=col, ax=ax)
         
         elif plot_type == 'bar' and target:
             if hue:
-                sns.barplot(data=df, x=target, y=col, ax=ax, hue=hue, palette='pastel', legend=True)
+                sns.barplot(data=df, x=target, y=col, ax=ax, hue=hue, palette='pastel', legend=legend)
+                ax.get_legend().remove()
             else:
                 sns.barplot(data=df, x=target, y=col, ax=ax)
         elif plot_type == 'box' and target:
             if hue:
-                sns.boxplot(data=df, x=target, y=col, ax=ax, hue=hue, palette='pastel', legend=True)
+                sns.boxplot(data=df, x=target, y=col, ax=ax, hue=hue, palette='pastel', legend=legend)
+                ax.get_legend().remove()
             else:
                 sns.boxplot(data=df, x=target, y=col, ax=ax)
         elif plot_type == 'violin' and target:
             if hue:
-                sns.violinplot(data=df, x=target, y=col, ax=ax, hue=hue, palette='pastel', legend=True)
+                sns.violinplot(data=df, x=target, y=col, ax=ax, hue=hue, palette='pastel', legend=legend)
+                ax.get_legend().remove()
             else:
                 sns.violinplot(data=df, x=target, y=col, ax=ax)
         else:
@@ -146,12 +150,19 @@ def plot_multiple_axes(df, cols, plot_type='hist', target=None, n_cols=3, height
 
         ax.set_title(f'{col} ({plot_type})')
         ax.tick_params(axis='x', rotation=xrot)
+        
+    if legend and hue:
+        # 마지막으로 그려진 그래프(ax)에서 범례 정보를 가져옴
+        handles, labels = ax.get_legend_handles_labels()
+        
+        # 전체 그림(fig)에 범례를 추가. bbox_to_anchor로 그래프 영역 밖으로 위치 조정
+        fig.legend(handles, labels, title=hue, bbox_to_anchor=(1.05, 0.6), loc='upper left')
+    plt.tight_layout()
 
     # 여분 축 제거
     # 현재 i는 마지막으로 그려진 플롯의 인덱스이므로, i+1부터 제거 시작
     for j in range(i + 1, len(axes)):
         fig.delaxes(axes[j])
 
-    plt.tight_layout()
     plt.show()
 
