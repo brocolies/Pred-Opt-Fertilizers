@@ -75,7 +75,8 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         X_new = X_new.drop(columns=self.categorical_features)
         
         return X_new
-    
+
+'''
 class RatioFeatureGenerator(BaseEstimator, TransformerMixin):
     def init(self):
         pass
@@ -91,5 +92,41 @@ class RatioFeatureGenerator(BaseEstimator, TransformerMixin):
         X_new['Po_ratio'] = X_new['Potassium'] / NPP_sum
         X_new['Ph_ratio'] = X_new['Phosphorous'] / NPP_sum
         return X_new 
+'''
 
+class GroupStatsFeatureGenerator(BaseEstimator, TransformerMixin):
+    # 이제 여러 개의 그룹과 여러 개의 수치형 컬럼을 처리하도록 리스트를 받는다
+    def __init__(self, group_by_cols, numerical_cols):
+        self.group_by_cols = group_by_cols
+        self.numerical_cols = numerical_cols
+        self.stats_df = None
+
+    def fit(self, X, y=None):
+        # 훈련 데이터만으로 통계량을 계산하고, 나중에 변환을 위해 저장
+        data = X.copy()
         
+        # self.numerical_cols는 이제 리스트이므로 그대로 사용 가능
+        self.stats_df = data.groupby(self.group_by_cols)[self.numerical_cols].agg(['mean', 'std']).reset_index()
+        
+        # 컬럼 이름 재설정 로직도 거의 그대로 사용 가능
+        group_by_str = '_'.join(self.group_by_cols)
+        # 그룹 컬럼 이름을 합쳐서 사용
+        
+        new_cols = []
+        for col in self.stats_df.columns:
+            if col[1]: # 멀티인덱스의 두 번째 레벨 이름이 존재하면 (mean, std) 
+                new_cols.append(f'{col[0]}_{col[1]}_by_{group_by_str}')
+            else: # 멀티인덱스의 두 번째 레벨 이름이 없으면 (group_by_cols)
+                new_cols.append(col[0])
+        self.stats_df.columns = new_cols
+        
+        return self
+
+    def transform(self, X):
+        X_new = X.copy()
+        
+        # fit에서 계산해둔 통계량을 원본 데이터에 병합(merge)
+        # merge할 때도 on=self.group_by_cols 사용
+        X_new = pd.merge(X_new, self.stats_df, on=self.group_by_cols, how='left')
+        
+        return X_new
