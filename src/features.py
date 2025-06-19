@@ -18,9 +18,26 @@ class InteractionFeatureGenerator(BaseEstimator, TransformerMixin):
         X_new['is_special_crops'] = X_new['Crop Type'].isin(special_crops).astype(int)
         X_new['Moisture_x_SpecialCrops'] = X_new['Moisture'] * X_new['is_special_crops']
         
-        exception_conditions = (X_new['Crop Type'].isin(['Pulses', 'Wheat'])) | (X_new['Soil Type'] == 'Black')
-        X_new['is_exception_for_28-28'] = exception_conditions.astype(int)
+        urea_crops = ['Millets', 'Barley', 'Paddy', 'Cotton']
+        used_conditions = (X_new['Crop Type'].isin(urea_crops)) & X_new['Soil Type'] == 'Sandy'
+        X_new['is_used_conditions_for_Urea'] = used_conditions.astype(int)
         
+        DAP_conditions = (
+            (X_new['Crop Type'] == 'Paddy') & (X_new['Soil Type'] == 'Sandy')
+        ) | (
+            (X_new['Crop Type'] == 'Tobacco') & (X_new['Soil Type'] == 'Black')
+        ) | (
+            (X_new['Crop Type'] == 'Maize') & (X_new['Soil Type'] == 'Sandy')
+        ) | (
+            (X_new['Crop Type'] == 'Wheat') & (X_new['Soil Type'] == 'Red')
+        )
+
+        X_new['is_used_conditions_for_DAP'] = DAP_conditions.astype(int)
+
+        
+#         exception_conditions = (X_new['Crop Type'].isin(['Pulses', 'Wheat'])) | (X_new['Soil Type'] == 'Black')
+#         X_new['is_exception_for_28-28'] = exception_conditions.astype(int)
+                
         return X_new
 
 class TargetEncoder(BaseEstimator, TransformerMixin):
@@ -58,3 +75,21 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         X_new = X_new.drop(columns=self.categorical_features)
         
         return X_new
+    
+class RatioFeatureGenerator(BaseEstimator, TransformerMixin):
+    def init(self):
+        pass
+    
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X):
+        X_new = X.copy()
+        NPP_sum = X_new['Nitrogen'] + X_new['Potassium'] + X_new['Phosphorous']
+        
+        X_new['Ni_ratio'] = X_new['Nitrogen'] / NPP_sum
+        X_new['Po_ratio'] = X_new['Potassium'] / NPP_sum
+        X_new['Ph_ratio'] = X_new['Phosphorous'] / NPP_sum
+        return X_new 
+
+        
